@@ -357,7 +357,7 @@ header{background:var(--navy);padding:0 20px;position:sticky;top:0;z-index:200;}
     </div>
     <div class="field" id="hourlyField">
       <label>시급 (원)</label>
-      <input class="finput mono" id="eHourly" type="number" value="10030" min="0">
+      <input class="finput mono" id="eHourly" type="number" value="10320" min="0">
     </div>
     <div class="field" id="dailyField" style="display:none">
       <label>일급 (원)</label>
@@ -674,7 +674,7 @@ function openEmpSheet(id) {
   document.getElementById('empBtnDel').style.display=emp?'block':'none';
   document.getElementById('eName').value=emp?.name||'';
   document.getElementById('eRole').value=emp?.role||'';
-  document.getElementById('eHourly').value=emp?.hourly||10030;
+  document.getElementById('eHourly').value=emp?.hourly||10320;
   document.getElementById('eDaily').value=emp?.dailyWage||80000;
   document.getElementById('eJuhyu').checked=emp?.juhyu!==undefined?emp.juhyu:true;
   setWageType(emp?.wageType||'hourly');
