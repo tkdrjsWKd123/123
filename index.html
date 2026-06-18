@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GIG 사장님 근무기록</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&family=JetBrains+Mono:wght@600;800&display=swap');
+:root {
+  --g:#1DC078;--g-light:#E7F9F1;--g-dark:#13935A;
+  --navy:#0F172A;--navy2:#1E293B;--navy3:#334155;
+  --slate:#64748B;--slate-light:#94A3B8;
+  --border:#E2E8F0;--bg:#F8FAFC;--white:#FFFFFF;
+  --red:#EF4444;--red-light:#FEE2E2;
+  --amber:#F59E0B;--amber-light:#FEF3C7;
+  --purple:#8B5CF6;--purple-light:#EDE9FE;
+  --shadow-sm:0 1px 3px rgba(15,23,42,0.08);
+  --shadow-md:0 4px 16px rgba(15,23,42,0.10);
+  --shadow-lg:0 8px 32px rgba(15,23,42,0.14);
+  --r:16px;--r-sm:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--navy);min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+/* HEADER */
+header{background:var(--navy);padding:0 20px;position:sticky;top:0;z-index:200;}
+.header-inner{max-width:600px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:54px;}
+.logo{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:16px;color:var(--g);letter-spacing:1px;}
+.logo em{color:rgba(255,255,255,0.45);font-style:normal;font-size:12px;margin-left:6px;font-family:'Noto Sans KR',sans-serif;font-weight:600;}
+.hbtns{display:flex;gap:6px;}
+.hbtn{height:30px;padding:0 11px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.7);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;display:flex;align-items:center;gap:4px;}
+.hbtn:hover{background:rgba(255,255,255,0.14);color:#fff;}
+.hbtn.green{background:var(--g);border-color:var(--g);color:#fff;}
+
+/* NAV */
+.nav-tabs{background:var(--navy2);border-bottom:1px solid rgba(255,255,255,0.07);}
+.nav-tabs-inner{max-width:600px;margin:0 auto;display:flex;}
+.ntab{flex:1;padding:10px 0;border:none;background:transparent;color:rgba(255,255,255,0.4);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;border-bottom:2px solid transparent;}
+.ntab.active{color:var(--g);border-bottom-color:var(--g);}
+
+/* LAYOUT */
+.content{max-width:600px;margin:0 auto;padding:20px 16px 80px;}
+.page{display:none;}.page.active{display:block;}
+
+/* MONTH NAV */
+.month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.mnav-btn{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border);background:var(--white);cursor:pointer;font-size:16px;color:var(--navy);display:flex;align-items:center;justify-content:center;transition:background .15s;}
+.mnav-btn:hover{background:var(--bg);}
+.month-txt{font-size:17px;font-weight:800;letter-spacing:-0.5px;}
+
+/* 인건비 요약 */
+.cost-card{background:var(--navy);border-radius:20px;padding:22px 20px;margin-bottom:16px;box-shadow:var(--shadow-lg);position:relative;overflow:hidden;}
+.cost-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,rgba(29,192,120,0.13) 0%,transparent 60%);pointer-events:none;}
+.cost-label{font-size:11px;color:rgba(255,255,255,0.5);font-weight:600;margin-bottom:4px;letter-spacing:0.3px;}
+.cost-total{font-family:'JetBrains Mono',monospace;font-size:34px;font-weight:800;color:#fff;letter-spacing:-1px;line-height:1;margin-bottom:4px;}
+.cost-sub{font-size:12px;color:rgba(255,255,255,0.35);margin-bottom:18px;}
+.cost-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.cost-item{background:rgba(255,255,255,0.08);border-radius:10px;padding:10px 12px;}
+.cost-item-label{font-size:10px;color:rgba(255,255,255,0.45);font-weight:600;margin-bottom:4px;}
+.cost-item-val{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:#fff;}
+.cost-item-val.green{color:var(--g);}
+
+/* ══ 달력 ══ */
+.cal-wrap{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:16px;}
+.cal-head{display:grid;grid-template-columns:repeat(7,1fr);background:var(--navy);}
+.cal-head-day{text-align:center;font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);padding:8px 0;}
+.cal-head-day.sun{color:#F87171;}
+.cal-head-day.sat{color:#93C5FD;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);border-left:1px solid var(--border);border-top:1px solid var(--border);}
+.cal-cell{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:5px 4px;min-height:72px;vertical-align:top;cursor:pointer;transition:background .1s;position:relative;}
+.cal-cell:hover{background:#f1fdf8;}
+.cal-cell.empty{background:var(--bg);cursor:default;}
+.cal-cell.empty:hover{background:var(--bg);}
+.cal-cell.today-cell{background:#f0fdf9;}
+.cal-day-num{font-size:11px;font-weight:700;color:var(--slate);margin-bottom:3px;display:block;}
+.cal-day-num.sun{color:var(--red);}
+.cal-day-num.sat{color:var(--blue, #3B82F6);}
+.cal-day-num.today-num{background:var(--g);color:#fff;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;}
+.cal-chip{display:block;border-radius:3px;padding:1px 4px;margin-bottom:2px;font-size:9px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5;}
+.cal-chip-time{display:block;font-size:8px;font-weight:600;opacity:0.85;margin-bottom:1px;padding:0 4px;}
+.cal-more{font-size:9px;color:var(--slate);font-weight:600;padding:0 3px;}
+
+/* 직원 카드 */
+.emp-cards{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
+.emp-sum-card{background:var(--white);border-radius:var(--r);padding:15px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all .15s;border-left:4px solid #ccc;}
+.emp-sum-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px);}
+.emp-sum-top{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.emp-avatar{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0;}
+.emp-sum-info{flex:1;min-width:0;}
+.emp-sum-name{font-size:15px;font-weight:800;letter-spacing:-0.3px;}
+.emp-sum-role{font-size:11px;color:var(--slate);font-weight:500;}
+.emp-sum-badges{display:flex;gap:4px;align-items:center;flex-wrap:wrap;}
+.badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;}
+.badge.green{background:var(--g-light);color:var(--g-dark);}
+.badge.purple{background:var(--purple-light);color:var(--purple);}
+.badge.amber{background:var(--amber-light);color:var(--amber);}
+.badge.gray{background:var(--bg);color:var(--slate);}
+.badge.blue{background:#EFF6FF;color:#3B82F6;}
+.emp-sum-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.emp-stat{text-align:center;}
+.emp-stat-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;color:var(--navy);}
+.emp-stat-val.green{color:var(--g);}
+.emp-stat-label{font-size:9px;font-weight:600;color:var(--slate-light);margin-top:1px;}
+
+/* 직원 목록 */
+.emp-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+.emp-row{background:var(--white);border-radius:var(--r-sm);padding:14px 16px;box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .15s;}
+.emp-row:hover{box-shadow:var(--shadow-md);}
+.emp-row-info{flex:1;min-width:0;}
+.emp-row-name{font-size:14px;font-weight:700;margin-bottom:3px;}
+.emp-row-meta{font-size:12px;color:var(--slate);}
+.emp-row-wage{text-align:right;}
+.emp-row-wage-val{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:var(--navy);}
+.emp-row-wage-label{font-size:10px;color:var(--slate-light);font-weight:600;}
+.emp-empty{text-align:center;padding:48px 0;color:var(--slate-light);font-size:13px;line-height:2;}
+.emp-empty-icon{font-size:36px;margin-bottom:8px;}
+
+/* 근무기록 탭 */
+.filter-row{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;}
+.filter-row::-webkit-scrollbar{display:none;}
+.filter-chip{flex-shrink:0;padding:6px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--slate);transition:all .15s;}
+.filter-chip.active{border-color:var(--g);background:var(--g-light);color:var(--g-dark);}
+.log-card{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:12px;}
+.log-card-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.log-card-title{font-size:13px;font-weight:700;}
+.log-card-sub{font-size:11px;color:var(--slate);font-weight:500;}
+.log-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--border);cursor:pointer;transition:background .1s;}
+.log-item:hover{background:var(--bg);}
+.log-date-box{width:40px;height:40px;border-radius:10px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.log-date-box .dm{font-size:9px;font-weight:700;color:var(--slate);}
+.log-date-box .dd{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;color:var(--navy);line-height:1;}
+.log-date-box.today-box{background:var(--g-light);}
+.log-date-box.today-box .dm{color:var(--g-dark);}
+.log-date-box.today-box .dd{color:var(--g);}
+.log-info{flex:1;min-width:0;}
+.log-name-row{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
+.log-emp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.log-emp-name{font-size:12px;font-weight:700;color:var(--slate);}
+.log-time-row{display:flex;align-items:center;gap:5px;}
+.log-time{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;}
+.log-arrow{color:var(--slate-light);font-size:11px;}
+.log-tag{font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;background:var(--amber-light);color:var(--amber);}
+.log-right{text-align:right;flex-shrink:0;}
+.log-dur{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;color:var(--g);}
+.log-pay{font-size:11px;color:var(--slate);font-weight:600;margin-top:1px;}
+.log-empty{text-align:center;padding:40px 0;color:var(--slate-light);font-size:13px;line-height:1.8;}
+
+/* 파일 패널 */
+.file-panel{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow-sm);padding:16px;margin-bottom:16px;}
+.file-panel-title{font-size:13px;font-weight:700;margin-bottom:12px;}
+.fbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.fbtn{padding:11px;border-radius:10px;border:1.5px solid var(--border);background:var(--white);color:var(--slate);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.fbtn:hover{background:var(--bg);}
+.fbtn.primary{background:var(--g-light);border-color:var(--g);color:var(--g-dark);}
+.file-hint{font-size:11px;color:var(--slate-light);margin-top:10px;line-height:1.7;}
+#fileInput{display:none;}
+
+/* FAB */
+.fab{position:fixed;bottom:24px;right:calc(50% - 280px);width:52px;height:52px;border-radius:50%;background:var(--g);color:#fff;border:none;font-size:24px;cursor:pointer;box-shadow:0 4px 20px rgba(29,192,120,0.45);display:none;align-items:center;justify-content:center;transition:all .15s;z-index:50;}
+.fab:hover{transform:scale(1.08);}
+@media(max-width:640px){.fab{right:20px;}}
+
+/* OVERLAY */
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,0.55);z-index:300;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;backdrop-filter:blur(2px);}
+.overlay.open{opacity:1;pointer-events:all;}
+.sheet{background:var(--white);border-radius:24px 24px 0 0;width:100%;max-width:600px;padding:20px 20px 48px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);max-height:92vh;overflow-y:auto;}
+.overlay.open .sheet{transform:translateY(0);}
+.sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 20px;}
+.sheet-title{font-size:17px;font-weight:800;margin-bottom:18px;letter-spacing:-0.5px;}
+
+/* FORM */
+.field{margin-bottom:14px;}
+.field label{font-size:11px;font-weight:700;color:var(--slate);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px;}
+.finput,.fselect{width:100%;padding:12px 14px;border-radius:var(--r-sm);border:1.5px solid var(--border);font-size:14px;font-family:inherit;color:var(--navy);background:var(--white);outline:none;transition:border-color .15s;}
+.finput:focus,.fselect:focus{border-color:var(--g);}
+.finput.mono{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.time-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;}
+.time-sep{font-size:18px;font-weight:800;color:var(--slate-light);text-align:center;}
+
+/* 시급/일급 토글 */
+.wage-type-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.wt-btn{padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--white);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--slate);transition:all .15s;}
+.wt-btn.active{border-color:var(--g);background:var(--g-light);color:var(--g-dark);}
+
+/* 주휴 토글 */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:13px 14px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:var(--white);margin-bottom:14px;}
+.toggle-info .toggle-label{font-size:14px;font-weight:600;}
+.toggle-info .toggle-sub{font-size:11px;color:var(--slate);margin-top:1px;}
+.toggle-switch{position:relative;width:44px;height:24px;flex-shrink:0;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:24px;cursor:pointer;transition:background .2s;}
+.toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,0.2);}
+.toggle-switch input:checked+.toggle-slider{background:var(--g);}
+.toggle-switch input:checked+.toggle-slider::before{transform:translateX(20px);}
+
+/* 색상 선택 */
+.color-picker{display:flex;gap:8px;flex-wrap:wrap;}
+.color-dot{width:30px;height:30px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .15s;}
+.color-dot.selected{border-color:var(--navy);transform:scale(1.15);}
+
+/* 버튼 */
+.btn-save{width:100%;padding:14px;border-radius:12px;background:var(--g);color:#fff;border:none;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;margin-top:8px;transition:background .15s;}
+.btn-save:hover{background:var(--g-dark);}
+.btn-del{width:100%;padding:12px;border-radius:12px;background:var(--red-light);color:var(--red);border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:8px;}
+.btn-del:hover{background:#fecaca;}
+
+/* 급여 미리보기 */
+.pay-breakdown{background:var(--navy);border-radius:var(--r);padding:16px;margin-bottom:14px;}
+.pay-breakdown .card-title{color:rgba(255,255,255,0.9);font-size:13px;font-weight:700;margin-bottom:12px;}
+.pay-row-item{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.07);}
+.pay-row-item:last-child{border-bottom:none;padding-bottom:0;}
+.pay-row-label{font-size:12px;color:rgba(255,255,255,0.5);font-weight:500;}
+.pay-row-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;color:#fff;}
+.pay-row-val.green{color:var(--g);}
+.pay-row-val.purple{color:#A78BFA;}
+.pay-total-row{display:flex;justify-content:space-between;align-items:center;padding-top:12px;margin-top:4px;border-top:1px solid rgba(255,255,255,0.15);}
+.pay-total-label{font-size:13px;font-weight:700;color:rgba(255,255,255,0.8);}
+.pay-total-val{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800;color:var(--g);}
+
+/* 주휴 설명 박스 */
+.juhyu-box{background:var(--purple-light);border:1px solid rgba(139,92,246,0.25);border-radius:12px;padding:12px;margin-bottom:14px;}
+.juhyu-title{font-size:12px;font-weight:700;color:var(--purple);margin-bottom:5px;}
+.juhyu-formula{font-size:11px;color:var(--purple);line-height:1.7;font-family:'JetBrains Mono',monospace;}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--navy);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;font-weight:600;opacity:0;transition:all .22s;z-index:999;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.2);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.section-label{font-size:11px;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;margin-top:4px;}
+
+/* 달력 범례 */
+.cal-legend{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+.cal-legend-item{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--slate);}
+.cal-legend-dot{width:10px;height:10px;border-radius:3px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">GIG<em>사장님 근무관리</em></div>
+    <div class="hbtns">
+      <button class="hbtn" onclick="toggleFilePanel()">💾 저장</button>
+    </div>
+  </div>
+</header>
+
+<div class="nav-tabs">
+  <div class="nav-tabs-inner">
+    <button class="ntab active" onclick="switchPage('dashboard',this)">📅 달력</button>
+    <button class="ntab" onclick="switchPage('employees',this)">👥 직원</button>
+    <button class="ntab" onclick="switchPage('records',this)">🕐 근무기록</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- ══ 대시보드 (달력) ══ -->
+  <div class="page active" id="page-dashboard">
+    <div class="month-nav">
+      <button class="mnav-btn" onclick="chMonth(-1)">‹</button>
+      <span class="month-txt" id="dashMonthLabel"></span>
+      <button class="mnav-btn" onclick="chMonth(1)">›</button>
+    </div>
+
+    <!-- 인건비 요약 -->
+    <div class="cost-card">
+      <div class="cost-label">이번 달 총 인건비</div>
+      <div class="cost-total" id="totalCost">₩0</div>
+      <div class="cost-sub" id="totalCostSub">직원 0명</div>
+      <div class="cost-grid">
+        <div class="cost-item"><div class="cost-item-label">총 근무시간</div><div class="cost-item-val" id="totalHrs">0.0h</div></div>
+        <div class="cost-item"><div class="cost-item-label">기본급 합계</div><div class="cost-item-val" id="totalBase">₩0</div></div>
+        <div class="cost-item"><div class="cost-item-label">주휴수당 합계</div><div class="cost-item-val green" id="totalJuhyu">₩0</div></div>
+      </div>
+    </div>
+
+    <!-- 직원 범례 -->
+    <div class="cal-legend" id="calLegend"></div>
+
+    <!-- 달력 -->
+    <div class="cal-wrap">
+      <div class="cal-head">
+        <div class="cal-head-day sun">일</div>
+        <div class="cal-head-day">월</div>
+        <div class="cal-head-day">화</div>
+        <div class="cal-head-day">수</div>
+        <div class="cal-head-day">목</div>
+        <div class="cal-head-day">금</div>
+        <div class="cal-head-day sat">토</div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+
+    <!-- 직원별 요약 카드 -->
+    <div class="section-label">직원별 현황</div>
+    <div class="emp-cards" id="empCards">
+      <div class="emp-empty"><div class="emp-empty-icon">👥</div>직원을 추가하면<br>여기에 현황이 표시돼요</div>
+    </div>
+
+    <!-- 파일 패널 -->
+    <div class="file-panel" id="filePanel" style="display:none">
+      <div class="file-panel-title">📁 데이터 저장 / 불러오기</div>
+      <div class="fbtns">
+        <button class="fbtn primary" onclick="saveFile()">⬇️ JSON 저장</button>
+        <button class="fbtn" onclick="document.getElementById('fileInput').click()">⬆️ 불러오기</button>
+      </div>
+      <input type="file" id="fileInput" accept=".json" onchange="loadFile(event)">
+      <p class="file-hint">✅ 데이터는 이 브라우저에 <b>자동저장</b>됩니다. 껐다 켜도 유지돼요.<br>📌 JSON 저장은 <b>다른 기기 이전</b>이나 <b>백업</b>용으로 사용하세요.</p>
+    </div>
+  </div>
+
+  <!-- ══ 직원 관리 ══ -->
+  <div class="page" id="page-employees">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <span style="font-size:17px;font-weight:800;">직원 목록</span>
+      <button class="hbtn green" style="height:34px;padding:0 14px;font-size:12px;" onclick="openEmpSheet()">+ 직원 추가</button>
+    </div>
+    <div class="emp-list" id="empList">
+      <div class="emp-empty"><div class="emp-empty-icon">🙋</div>등록된 직원이 없어요.<br>직원 추가 버튼을 눌러 시작하세요!</div>
+    </div>
+  </div>
+
+  <!-- ══ 근무기록 ══ -->
+  <div class="page" id="page-records">
+    <div class="month-nav">
+      <button class="mnav-btn" onclick="chMonth(-1)">‹</button>
+      <span class="month-txt" id="recMonthLabel"></span>
+      <button class="mnav-btn" onclick="chMonth(1)">›</button>
+    </div>
+    <div class="filter-row" id="empFilter"></div>
+    <div id="recordList"></div>
+  </div>
+</div>
+
+<button class="fab" id="fabBtn" onclick="openRecSheet()" title="근무기록 추가">+</button>
+
+<!-- ══ 직원 시트 ══ -->
+<div class="overlay" id="empOverlay" onclick="closeIfOut(event,'empOverlay')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="empSheetTitle">직원 추가</div>
+
+    <div class="two-col">
+      <div class="field"><label>이름</label><input class="finput" id="eName" type="text" placeholder="홍길동"></div>
+      <div class="field"><label>직급/역할</label><input class="finput" id="eRole" type="text" placeholder="파트타임"></div>
+    </div>
+
+    <!-- 시급 / 일급 선택 -->
+    <div class="field">
+      <label>급여 유형</label>
+      <div class="wage-type-toggle">
+        <button class="wt-btn active" id="wtHourly" onclick="setWageType('hourly')">⏰ 시급</button>
+        <button class="wt-btn" id="wtDaily" onclick="setWageType('daily')">📅 일급</button>
+      </div>
+    </div>
+    <div class="field" id="hourlyField">
+      <label>시급 (원)</label>
+      <input class="finput mono" id="eHourly" type="number" value="10030" min="0">
+    </div>
+    <div class="field" id="dailyField" style="display:none">
+      <label>일급 (원)</label>
+      <input class="finput mono" id="eDaily" type="number" value="80000" min="0">
+    </div>
+
+    <!-- 주휴수당 토글 -->
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <div class="toggle-label">🎁 주휴수당 포함</div>
+        <div class="toggle-sub">주 15시간 이상 근무 시 자동 계산</div>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="eJuhyu" checked onchange="updateJuhyuBox()">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="juhyu-box" id="juhyuBox">
+      <div class="juhyu-title">📐 주휴수당 계산 공식 (시급제)</div>
+      <div class="juhyu-formula">주휴수당 = (주 근무시간 ÷ 40) × 8 × 시급<br>※ 주 15시간 이상 개근 시 지급</div>
+    </div>
+
+    <div class="field">
+      <label>색상 태그</label>
+      <div class="color-picker" id="colorPicker"></div>
+    </div>
+
+    <button class="btn-save" onclick="saveEmp()">저장하기</button>
+    <button class="btn-del" id="empBtnDel" style="display:none" onclick="deleteEmp()">직원 삭제</button>
+  </div>
+</div>
+
+<!-- ══ 근무기록 시트 ══ -->
+<div class="overlay" id="recOverlay" onclick="closeIfOut(event,'recOverlay')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="recSheetTitle">근무기록 추가</div>
+    <div class="field"><label>직원 선택</label><select class="fselect" id="rEmp" onchange="updatePayPreview()"></select></div>
+    <div class="field"><label>날짜</label><input class="finput" id="rDate" type="date" onchange="updatePayPreview()"></div>
+    <div class="field">
+      <label>출근 → 퇴근</label>
+      <div class="time-row">
+        <input class="finput mono" id="rIn" type="time" oninput="updatePayPreview()">
+        <div class="time-sep">→</div>
+        <input class="finput mono" id="rOut" type="time" oninput="updatePayPreview()">
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="field"><label>휴게시간 (분)</label><input class="finput" id="rBreak" type="number" value="0" min="0" max="480" oninput="updatePayPreview()"></div>
+      <div class="field"><label>메모</label><input class="finput" id="rMemo" type="text" placeholder="야근, 재택..."></div>
+    </div>
+
+    <div class="pay-breakdown" id="recPayPreview" style="display:none">
+      <div class="card-title">💰 이 근무 예상 급여</div>
+      <div class="pay-row-item"><span class="pay-row-label">근무시간</span><span class="pay-row-val" id="prevDur">-</span></div>
+      <div class="pay-row-item"><span class="pay-row-label" id="prevWageLabel">시급</span><span class="pay-row-val" id="prevWage">-</span></div>
+      <div class="pay-row-item"><span class="pay-row-label">일급</span><span class="pay-row-val green" id="prevPay">-</span></div>
+    </div>
+
+    <button class="btn-save" onclick="saveRec()">저장하기</button>
+    <button class="btn-del" id="recBtnDel" style="display:none" onclick="deleteRec()">삭제</button>
+  </div>
+</div>
+
+<!-- ══ 직원 상세 시트 ══ -->
+<div class="overlay" id="detailOverlay" onclick="closeIfOut(event,'detailOverlay')">
+  <div class="sheet"><div class="sheet-handle"></div><div id="detailContent"></div></div>
+</div>
+
+<!-- ══ 날짜 클릭 시트 ══ -->
+<div class="overlay" id="dayOverlay" onclick="closeIfOut(event,'dayOverlay')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="daySheetTitle"></div>
+    <div id="daySheetContent"></div>
+    <button class="btn-save" style="margin-top:16px" onclick="closeOverlay('dayOverlay');setTimeout(()=>openRecSheet(),200)">+ 이 날 근무 추가</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══ 상태 ═══
+let db = { employees:[], records:[] };
+let viewYear = new Date().getFullYear();
+let viewMonth = new Date().getMonth();
+let currentPage = 'dashboard';
+let filterEmpId = 'all';
+let editEmpId = null;
+let editRecId = null;
+let selectedColor = '#1DC078';
+let selectedWageType = 'hourly'; // 'hourly' | 'daily'
+let clickedDate = null;
+
+const COLORS = ['#1DC078','#3B82F6','#8B5CF6','#F59E0B','#EF4444','#EC4899','#14B8A6','#F97316','#6366F1','#84CC16'];
+const DAYS = ['일','월','화','수','목','금','토'];
+const pad = n => String(n).padStart(2,'0');
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+const fmtMoney = n => '₩' + Math.round(n).toLocaleString('ko-KR');
+
+function calcMins(date, inT, outT, brk) {
+  const [ih,im]=inT.split(':').map(Number);
+  const [oh,om]=outT.split(':').map(Number);
+  const base=new Date(date);
+  let inMs=new Date(base.getFullYear(),base.getMonth(),base.getDate(),ih,im).getTime();
+  let outMs=new Date(base.getFullYear(),base.getMonth(),base.getDate(),oh,om).getTime();
+  if(outMs<=inMs) outMs+=864e5;
+  return Math.max(0,(outMs-inMs)/60000-(brk||0));
+}
+
+// 직원 급여 계산 (시급/일급 모드 통합)
+function calcRecPay(rec) {
+  const emp = db.employees.find(e=>e.id===rec.empId);
+  if (!emp) return 0;
+  const mins = calcMins(rec.date, rec.in, rec.out, rec.break||0);
+  if (emp.wageType === 'daily') {
+    return emp.dailyWage || 0;
+  } else {
+    return (mins/60) * (emp.hourly||0);
+  }
+}
+
+function monthRecs(empId) {
+  return db.records.filter(r=>{
+    const d=new Date(r.date);
+    return d.getFullYear()===viewYear&&d.getMonth()===viewMonth&&(!empId||empId==='all'||r.empId===empId);
+  }).sort((a,b)=>new Date(b.date+' '+b.in)-new Date(a.date+' '+a.in));
+}
+
+// 주휴수당: 시급제만 적용 (일급제는 이미 하루치 급여에 포함된 것으로 간주 or 선택적)
+function calcJuhyu(empId, year, month) {
+  const emp = db.employees.find(e=>e.id===empId);
+  if (!emp || !emp.juhyu || emp.wageType==='daily') return 0;
+  const recs = db.records.filter(r=>r.empId===empId&&r.date.startsWith(`${year}-${pad(month+1)}`));
+  const weeks = {};
+  recs.forEach(r=>{
+    const d=new Date(r.date);
+    const wk=Math.floor((d.getDate()-1)/7);
+    if(!weeks[wk]) weeks[wk]=0;
+    weeks[wk]+=calcMins(r.date,r.in,r.out,r.break||0);
+  });
+  let total=0;
+  Object.values(weeks).forEach(wMin=>{
+    const wHrs=wMin/60;
+    if(wHrs>=15){
+      const jHrs=Math.min(wHrs/40,1)*8;
+      total+=jHrs*(emp.hourly||0);
+    }
+  });
+  return total;
+}
+
+function empStats(empId) {
+  const recs=monthRecs(empId);
+  const totalMin=recs.reduce((s,r)=>s+calcMins(r.date,r.in,r.out,r.break||0),0);
+  const days=new Set(recs.map(r=>r.date)).size;
+  const hrs=totalMin/60;
+  const base=recs.reduce((s,r)=>s+calcRecPay(r),0);
+  const juhyu=calcJuhyu(empId,viewYear,viewMonth);
+  return {recs,totalMin,days,hrs,base,juhyu,total:base+juhyu};
+}
+
+// ═══ 렌더 ═══
+function render() {
+  document.getElementById('dashMonthLabel').textContent=`${viewYear}년 ${viewMonth+1}월`;
+  document.getElementById('recMonthLabel').textContent=`${viewYear}년 ${viewMonth+1}월`;
+  renderDashboard();
+  renderCalendar();
+  renderEmpList();
+  renderRecords();
+}
+
+function renderDashboard() {
+  const emps=db.employees;
+  let totalCost=0,totalBase=0,totalJuhyuSum=0,totalHrsSum=0;
+  emps.forEach(e=>{const s=empStats(e.id);totalCost+=s.total;totalBase+=s.base;totalJuhyuSum+=s.juhyu;totalHrsSum+=s.hrs;});
+  document.getElementById('totalCost').textContent=fmtMoney(totalCost);
+  document.getElementById('totalCostSub').textContent=`직원 ${emps.length}명`;
+  document.getElementById('totalHrs').textContent=`${totalHrsSum.toFixed(1)}h`;
+  document.getElementById('totalBase').textContent=fmtMoney(totalBase);
+  document.getElementById('totalJuhyu').textContent=fmtMoney(totalJuhyuSum);
+
+  // 범례
+  document.getElementById('calLegend').innerHTML = emps.map(e=>
+    `<div class="cal-legend-item"><div class="cal-legend-dot" style="background:${e.color}"></div>${e.name}</div>`
+  ).join('');
+
+  // 직원 카드
+  const container=document.getElementById('empCards');
+  if(!emps.length){container.innerHTML='<div class="emp-empty"><div class="emp-empty-icon">👥</div>직원을 추가하면<br>여기에 현황이 표시돼요</div>';return;}
+  container.innerHTML=emps.map(e=>{
+    const s=empStats(e.id);
+    const wageLabel=e.wageType==='daily'?'일급':'시급';
+    const wageVal=e.wageType==='daily'?fmtMoney(e.dailyWage||0):fmtMoney(e.hourly||0);
+    return `<div class="emp-sum-card" style="border-left-color:${e.color}" onclick="openDetail('${e.id}')">
+      <div class="emp-sum-top">
+        <div class="emp-avatar" style="background:${e.color}">${e.name.slice(0,1)}</div>
+        <div class="emp-sum-info">
+          <div class="emp-sum-name">${e.name}</div>
+          <div class="emp-sum-role">${e.role||'직원'}</div>
+        </div>
+        <div class="emp-sum-badges">
+          <span class="badge ${e.wageType==='daily'?'blue':'green'}">${wageLabel}</span>
+          ${e.juhyu&&e.wageType!=='daily'?'<span class="badge purple">주휴✓</span>':''}
+          ${s.recs.some(r=>calcMins(r.date,r.in,r.out,r.break||0)>480)?'<span class="badge amber">OT</span>':''}
+        </div>
+      </div>
+      <div class="emp-sum-stats">
+        <div class="emp-stat"><div class="emp-stat-val green">${s.days}</div><div class="emp-stat-label">근무일</div></div>
+        <div class="emp-stat"><div class="emp-stat-val">${s.hrs.toFixed(1)}</div><div class="emp-stat-label">총시간</div></div>
+        <div class="emp-stat"><div class="emp-stat-val">${wageVal}</div><div class="emp-stat-label">${wageLabel}</div></div>
+        <div class="emp-stat"><div class="emp-stat-val" style="color:${e.color}">${fmtMoney(s.total)}</div><div class="emp-stat-label">예상급여</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══ 달력 ═══
+function renderCalendar() {
+  const today = new Date();
+  const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+  const lastDate = new Date(viewYear, viewMonth+1, 0).getDate();
+  const todayStr = today.toISOString().slice(0,10);
+
+  // 날짜별 기록 맵
+  const dayMap = {};
+  db.records.forEach(r=>{
+    if(!r.date.startsWith(`${viewYear}-${pad(viewMonth+1)}`)) return;
+    if(!dayMap[r.date]) dayMap[r.date]=[];
+    dayMap[r.date].push(r);
+  });
+
+  let html='';
+  // 빈 칸
+  for(let i=0;i<firstDay;i++) html+=`<div class="cal-cell empty"></div>`;
+
+  for(let d=1;d<=lastDate;d++){
+    const dateStr=`${viewYear}-${pad(viewMonth+1)}-${pad(d)}`;
+    const dow=new Date(viewYear,viewMonth,d).getDay();
+    const isToday=dateStr===todayStr;
+    const recs=dayMap[dateStr]||[];
+    const numClass=dow===0?'sun':dow===6?'sat':'';
+
+    let dayNumHtml=isToday
+      ?`<span class="cal-day-num today-num">${d}</span>`
+      :`<span class="cal-day-num ${numClass}">${d}</span>`;
+
+    let chipsHtml='';
+    const maxShow=3;
+    recs.slice(0,maxShow).forEach(r=>{
+      const emp=db.employees.find(e=>e.id===r.empId);
+      const color=emp?.color||'#94A3B8';
+      const name=emp?.name||'?';
+      const mins=calcMins(r.date,r.in,r.out,r.break||0);
+      const h=Math.floor(mins/60),m=Math.round(mins%60);
+      const durStr=h>0?`${h}h${m>0?m+'m':''}`:`${m}m`;
+      chipsHtml+=`<span class="cal-chip" style="background:${color}">${name}</span>
+        <span class="cal-chip-time" style="color:${color}">${r.in}~${r.out} (${durStr})</span>`;
+    });
+    if(recs.length>maxShow) chipsHtml+=`<span class="cal-more">+${recs.length-maxShow}건</span>`;
+
+    html+=`<div class="cal-cell ${isToday?'today-cell':''}" onclick="openDaySheet('${dateStr}')">
+      ${dayNumHtml}${chipsHtml}
+    </div>`;
+  }
+
+  // 뒷 빈칸
+  const total=firstDay+lastDate;
+  const remain=total%7?7-(total%7):0;
+  for(let i=0;i<remain;i++) html+=`<div class="cal-cell empty"></div>`;
+
+  document.getElementById('calGrid').innerHTML=html;
+}
+
+// 날짜 클릭 → 당일 기록 시트
+function openDaySheet(dateStr) {
+  clickedDate=dateStr;
+  const d=new Date(dateStr);
+  document.getElementById('daySheetTitle').textContent=`${d.getMonth()+1}월 ${d.getDate()}일 (${DAYS[d.getDay()]}) 근무`;
+  const recs=db.records.filter(r=>r.date===dateStr);
+  if(!recs.length){
+    document.getElementById('daySheetContent').innerHTML=`<div class="log-empty" style="padding:24px 0">이 날 근무 기록이 없어요.</div>`;
+  } else {
+    document.getElementById('daySheetContent').innerHTML=recs.map(r=>{
+      const emp=db.employees.find(e=>e.id===r.empId);
+      const mins=calcMins(r.date,r.in,r.out,r.break||0);
+      const h=Math.floor(mins/60),m=Math.round(mins%60);
+      const pay=calcRecPay(r);
+      return `<div class="log-item" style="padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="closeOverlay('dayOverlay');setTimeout(()=>openRecSheet('${r.id}'),200)">
+        <div class="log-emp-dot" style="background:${emp?.color||'#ccc'};width:10px;height:10px;border-radius:50%;flex-shrink:0"></div>
+        <div class="log-info">
+          <div class="log-name-row"><span class="log-emp-name" style="font-size:13px;font-weight:800;color:var(--navy)">${emp?.name||'알수없음'}</span>${mins>480?'<span class="log-tag">OT</span>':''}</div>
+          <div class="log-time-row" style="margin-top:3px">
+            <span class="log-time">${r.in}</span><span class="log-arrow">→</span><span class="log-time">${r.out}</span>
+            ${r.break?`<span style="font-size:10px;color:var(--slate-light)">휴게 ${r.break}분</span>`:''}
+          </div>
+          ${r.memo?`<div style="font-size:11px;color:var(--slate);margin-top:2px">${r.memo}</div>`:''}
+        </div>
+        <div class="log-right">
+          <div class="log-dur">${h>0?h+'h ':''} ${m>0?m+'m':''}</div>
+          <div class="log-pay">${fmtMoney(pay)}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('dayOverlay').classList.add('open');
+}
+
+// ═══ 직원 시트 ═══
+function openEmpSheet(id) {
+  editEmpId=id||null;
+  const emp=id?db.employees.find(e=>e.id===id):null;
+  document.getElementById('empSheetTitle').textContent=emp?'직원 수정':'직원 추가';
+  document.getElementById('empBtnDel').style.display=emp?'block':'none';
+  document.getElementById('eName').value=emp?.name||'';
+  document.getElementById('eRole').value=emp?.role||'';
+  document.getElementById('eHourly').value=emp?.hourly||10030;
+  document.getElementById('eDaily').value=emp?.dailyWage||80000;
+  document.getElementById('eJuhyu').checked=emp?.juhyu!==undefined?emp.juhyu:true;
+  setWageType(emp?.wageType||'hourly');
+  updateJuhyuBox();
+  selectedColor=emp?.color||COLORS[0];
+  renderColorPicker();
+  document.getElementById('empOverlay').classList.add('open');
+}
+
+function setWageType(type) {
+  selectedWageType=type;
+  document.getElementById('wtHourly').className='wt-btn'+(type==='hourly'?' active':'');
+  document.getElementById('wtDaily').className='wt-btn'+(type==='daily'?' active':'');
+  document.getElementById('hourlyField').style.display=type==='hourly'?'block':'none';
+  document.getElementById('dailyField').style.display=type==='daily'?'block':'none';
+  // 일급제면 주휴수당 토글 숨김 (일급에 포함 간주)
+  document.getElementById('eJuhyu').closest('.toggle-row').style.display=type==='daily'?'none':'flex';
+  updateJuhyuBox();
+}
+
+function updateJuhyuBox() {
+  const show=document.getElementById('eJuhyu').checked && selectedWageType==='hourly';
+  document.getElementById('juhyuBox').style.display=show?'block':'none';
+}
+
+function renderColorPicker() {
+  document.getElementById('colorPicker').innerHTML=COLORS.map(c=>
+    `<div class="color-dot ${c===selectedColor?'selected':''}" style="background:${c}" onclick="selectColor('${c}')"></div>`
+  ).join('');
+}
+function selectColor(c){selectedColor=c;renderColorPicker();}
+
+function saveEmp() {
+  const name=document.getElementById('eName').value.trim();
+  const role=document.getElementById('eRole').value.trim();
+  const hourly=parseFloat(document.getElementById('eHourly').value)||0;
+  const dailyWage=parseFloat(document.getElementById('eDaily').value)||0;
+  const juhyu=document.getElementById('eJuhyu').checked;
+  if(!name){showToast('이름을 입력해주세요');return;}
+  const empData={name,role,hourly,dailyWage,wageType:selectedWageType,juhyu:selectedWageType==='hourly'?juhyu:false,color:selectedColor};
+  if(editEmpId){
+    const idx=db.employees.findIndex(e=>e.id===editEmpId);
+    db.employees[idx]={...db.employees[idx],...empData};
+  } else {
+    db.employees.push({id:uid(),...empData});
+  }
+  closeOverlay('empOverlay');
+  render();
+  showToast(editEmpId?'직원 정보를 수정했어요 ✓':'직원을 추가했어요 ✓');
+}
+
+function deleteEmp() {
+  if(!confirm('직원을 삭제하면 관련 근무기록도 모두 삭제됩니다.\n계속할까요?')) return;
+  db.employees=db.employees.filter(e=>e.id!==editEmpId);
+  db.records=db.records.filter(r=>r.empId!==editEmpId);
+  closeOverlay('empOverlay');
+  render();
+  showToast('삭제했어요');
+}
+
+// ═══ 근무기록 시트 ═══
+function openRecSheet(id) {
+  editRecId=id||null;
+  const rec=id?db.records.find(r=>r.id===id):null;
+  document.getElementById('recSheetTitle').textContent=rec?'근무기록 수정':'근무기록 추가';
+  document.getElementById('recBtnDel').style.display=rec?'block':'none';
+  const sel=document.getElementById('rEmp');
+  sel.innerHTML=db.employees.map(e=>{
+    const wLabel=e.wageType==='daily'?`일급 ${fmtMoney(e.dailyWage)}`:`시급 ${fmtMoney(e.hourly)}`;
+    return `<option value="${e.id}">${e.name} (${wLabel})</option>`;
+  }).join('');
+  if(!db.employees.length){showToast('먼저 직원을 추가해주세요');return;}
+  if(rec){
+    sel.value=rec.empId;
+    document.getElementById('rDate').value=rec.date;
+    document.getElementById('rIn').value=rec.in;
+    document.getElementById('rOut').value=rec.out;
+    document.getElementById('rBreak').value=rec.break||0;
+    document.getElementById('rMemo').value=rec.memo||'';
+  } else {
+    if(filterEmpId!=='all') sel.value=filterEmpId;
+    // 달력에서 날짜 클릭한 경우 해당 날짜로
+    document.getElementById('rDate').value=clickedDate||new Date().toISOString().slice(0,10);
+    document.getElementById('rIn').value='09:00';
+    document.getElementById('rOut').value='18:00';
+    document.getElementById('rBreak').value='0';
+    document.getElementById('rMemo').value='';
+  }
+  updatePayPreview();
+  document.getElementById('recOverlay').classList.add('open');
+}
+
+function updatePayPreview() {
+  const empId=document.getElementById('rEmp').value;
+  const inT=document.getElementById('rIn').value;
+  const outT=document.getElementById('rOut').value;
+  const brk=parseInt(document.getElementById('rBreak').value)||0;
+  const date=document.getElementById('rDate').value||new Date().toISOString().slice(0,10);
+  const prev=document.getElementById('recPayPreview');
+  if(!empId||!inT||!outT){prev.style.display='none';return;}
+  const emp=db.employees.find(e=>e.id===empId);
+  if(!emp){prev.style.display='none';return;}
+  const mins=calcMins(date,inT,outT,brk);
+  const h=Math.floor(mins/60),m=Math.round(mins%60);
+  let pay=0;
+  if(emp.wageType==='daily'){
+    pay=emp.dailyWage||0;
+    document.getElementById('prevWageLabel').textContent='일급';
+    document.getElementById('prevWage').textContent=fmtMoney(emp.dailyWage||0)+'/일';
+  } else {
+    pay=(mins/60)*(emp.hourly||0);
+    document.getElementById('prevWageLabel').textContent='시급';
+    document.getElementById('prevWage').textContent=fmtMoney(emp.hourly||0)+'/h';
+  }
+  prev.style.display='block';
+  document.getElementById('prevDur').textContent=`${h}h ${m}m`;
+  document.getElementById('prevPay').textContent=fmtMoney(pay);
+}
+
+function saveRec() {
+  const empId=document.getElementById('rEmp').value;
+  const date=document.getElementById('rDate').value;
+  const inT=document.getElementById('rIn').value;
+  const outT=document.getElementById('rOut').value;
+  const brk=parseInt(document.getElementById('rBreak').value)||0;
+  const memo=document.getElementById('rMemo').value.trim();
+  if(!empId||!date||!inT||!outT){showToast('직원, 날짜, 시간을 모두 입력해주세요');return;}
+  if(editRecId){
+    const idx=db.records.findIndex(r=>r.id===editRecId);
+    db.records[idx]={...db.records[idx],empId,date,in:inT,out:outT,break:brk,memo};
+  } else {
+    db.records.push({id:uid(),empId,date,in:inT,out:outT,break:brk,memo});
+  }
+  clickedDate=null;
+  closeOverlay('recOverlay');
+  render();
+  showToast(editRecId?'수정했어요 ✓':'추가했어요 ✓');
+}
+
+function deleteRec() {
+  if(!confirm('이 근무기록을 삭제할까요?')) return;
+  db.records=db.records.filter(r=>r.id!==editRecId);
+  closeOverlay('recOverlay');
+  render();
+  showToast('삭제했어요');
+}
+
+// ═══ 직원 목록 ═══
+function renderEmpList() {
+  const list=document.getElementById('empList');
+  if(!db.employees.length){list.innerHTML='<div class="emp-empty"><div class="emp-empty-icon">🙋</div>등록된 직원이 없어요.<br>직원 추가 버튼을 눌러 시작하세요!</div>';return;}
+  list.innerHTML=db.employees.map(e=>{
+    const wLabel=e.wageType==='daily'?`일급 ${fmtMoney(e.dailyWage||0)}`:`시급 ${fmtMoney(e.hourly||0)}`;
+    return `<div class="emp-row" onclick="openEmpSheet('${e.id}')">
+      <div class="emp-avatar" style="background:${e.color};width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff;flex-shrink:0">${e.name.slice(0,1)}</div>
+      <div class="emp-row-info">
+        <div class="emp-row-name">${e.name}</div>
+        <div class="emp-row-meta">${e.role||'직원'} · ${wLabel} · ${e.juhyu&&e.wageType!=='daily'?'주휴 O':'주휴 X'}</div>
+      </div>
+      <div class="emp-row-wage">
+        <div class="emp-row-wage-val">${e.wageType==='daily'?fmtMoney(e.dailyWage||0):fmtMoney(e.hourly||0)}</div>
+        <div class="emp-row-wage-label">${e.wageType==='daily'?'일급':'시급'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══ 근무기록 탭 ═══
+function renderRecords() {
+  const filterEl=document.getElementById('empFilter');
+  filterEl.innerHTML=`<button class="filter-chip ${filterEmpId==='all'?'active':''}" onclick="setFilter('all')">전체</button>`+
+    db.employees.map(e=>`<button class="filter-chip ${filterEmpId===e.id?'active':''}" onclick="setFilter('${e.id}')" style="${filterEmpId===e.id?`border-color:${e.color};background:${e.color}20;color:${e.color}`:''}">● ${e.name}</button>`).join('');
+
+  const recs=monthRecs(filterEmpId);
+  const container=document.getElementById('recordList');
+  if(!recs.length){container.innerHTML='<div class="log-empty">📋 이번 달 근무 기록이 없어요.<br>+ 버튼으로 추가해보세요!</div>';return;}
+  const today=new Date().toISOString().slice(0,10);
+  const groups={};
+  recs.forEach(r=>{if(!groups[r.date])groups[r.date]=[];groups[r.date].push(r);});
+  container.innerHTML=Object.entries(groups).map(([date,items])=>{
+    const d=new Date(date);
+    const isToday=date===today;
+    const dayTotal=items.reduce((s,r)=>s+calcMins(r.date,r.in,r.out,r.break||0),0);
+    const dayPay=items.reduce((s,r)=>s+calcRecPay(r),0);
+    return `<div class="log-card">
+      <div class="log-card-header">
+        <span class="log-card-title">${d.getMonth()+1}월 ${d.getDate()}일 (${DAYS[d.getDay()]})</span>
+        <span class="log-card-sub">${(dayTotal/60).toFixed(1)}h · ${fmtMoney(dayPay)}</span>
+      </div>
+      ${items.map(r=>{
+        const emp=db.employees.find(e=>e.id===r.empId);
+        const mins=calcMins(r.date,r.in,r.out,r.break||0);
+        const h=Math.floor(mins/60),m=Math.round(mins%60);
+        const dur=h>0?`${h}h ${m}m`:`${m}m`;
+        const pay=calcRecPay(r);
+        return `<div class="log-item" onclick="openRecSheet('${r.id}')">
+          <div class="log-date-box ${isToday?'today-box':''}">
+            <div class="dm">${d.getMonth()+1}월</div>
+            <div class="dd">${pad(d.getDate())}</div>
+          </div>
+          <div class="log-info">
+            <div class="log-name-row">
+              <div class="log-emp-dot" style="background:${emp?.color||'#ccc'}"></div>
+              <span class="log-emp-name">${emp?.name||'알수없음'}</span>
+              ${mins>480?'<span class="log-tag">OT</span>':''}
+              ${emp?.wageType==='daily'?'<span class="log-tag" style="background:var(--blue-light,#EFF6FF);color:#3B82F6">일급</span>':''}
+            </div>
+            <div class="log-time-row">
+              <span class="log-time">${r.in}</span><span class="log-arrow">→</span><span class="log-time">${r.out}</span>
+              ${r.break?`<span style="font-size:10px;color:var(--slate-light)">휴게${r.break}분</span>`:''}
+            </div>
+          </div>
+          <div class="log-right">
+            <div class="log-dur">${dur}</div>
+            <div class="log-pay">${fmtMoney(pay)}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+// ═══ 직원 상세 ═══
+function openDetail(empId) {
+  const emp=db.employees.find(e=>e.id===empId);
+  if(!emp) return;
+  const s=empStats(empId);
+  const dailyAvg=s.days?s.base/s.days:0;
+  const recs=db.records.filter(r=>r.empId===empId&&r.date.startsWith(`${viewYear}-${pad(viewMonth+1)}`));
+  const weeks={};
+  recs.forEach(r=>{const d=new Date(r.date);const wk=Math.floor((d.getDate()-1)/7);if(!weeks[wk])weeks[wk]={mins:0,label:`${wk+1}주차`};weeks[wk].mins+=calcMins(r.date,r.in,r.out,r.break||0);});
+  const weekRows=emp.wageType!=='daily'?Object.values(weeks).map(w=>{
+    const wh=w.mins/60;const el=wh>=15&&emp.juhyu;
+    const jh=el?Math.min(wh/40,1)*8:0;
+    return `<div class="pay-row-item"><span class="pay-row-label">${w.label} (${wh.toFixed(1)}h)${wh>=15?' ✓':''}</span><span class="pay-row-val purple">${el?fmtMoney(jh*emp.hourly):'미지급'}</span></div>`;
+  }).join(''):'';
+
+  document.getElementById('detailContent').innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <div style="width:48px;height:48px;border-radius:14px;background:${emp.color};display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff">${emp.name.slice(0,1)}</div>
+      <div>
+        <div style="font-size:18px;font-weight:800">${emp.name}</div>
+        <div style="font-size:12px;color:var(--slate)">${emp.role||'직원'} · ${emp.wageType==='daily'?'일급제':'시급제'} · ${emp.juhyu&&emp.wageType!=='daily'?'주휴수당 포함':'주휴수당 미포함'}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+      <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:10px;font-weight:700;color:var(--slate);margin-bottom:4px">${emp.wageType==='daily'?'일급':'시급'}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800">${fmtMoney(emp.wageType==='daily'?(emp.dailyWage||0):(emp.hourly||0))}</div>
+      </div>
+      <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:10px;font-weight:700;color:var(--slate);margin-bottom:4px">일 평균 기본급</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;color:var(--g)">${fmtMoney(dailyAvg)}</div>
+      </div>
+    </div>
+    <div class="pay-breakdown">
+      <div class="card-title">💰 ${viewYear}년 ${viewMonth+1}월 급여 내역</div>
+      <div class="pay-row-item"><span class="pay-row-label">근무일수</span><span class="pay-row-val">${s.days}일</span></div>
+      <div class="pay-row-item"><span class="pay-row-label">총 근무시간</span><span class="pay-row-val">${s.hrs.toFixed(2)}h</span></div>
+      <div class="pay-row-item"><span class="pay-row-label">기본급</span><span class="pay-row-val green">${fmtMoney(s.base)}</span></div>
+      ${emp.wageType!=='daily'&&emp.juhyu?`
+        <div style="margin:8px 0 4px;font-size:10px;color:rgba(255,255,255,0.4);font-weight:600">주휴수당 (주별)</div>
+        ${weekRows||'<div class="pay-row-item"><span class="pay-row-label">근무기록 없음</span><span class="pay-row-val">-</span></div>'}
+        <div class="pay-row-item"><span class="pay-row-label">주휴수당 합계</span><span class="pay-row-val purple">${fmtMoney(s.juhyu)}</span></div>
+      `:`<div class="pay-row-item"><span class="pay-row-label">주휴수당</span><span class="pay-row-val" style="color:rgba(255,255,255,0.3)">${emp.wageType==='daily'?'일급에 포함':'미적용'}</span></div>`}
+      <div class="pay-total-row"><span class="pay-total-label">예상 총 급여</span><span class="pay-total-val">${fmtMoney(s.total)}</span></div>
+    </div>
+    <button class="btn-save" onclick="closeOverlay('detailOverlay');setTimeout(()=>openEmpSheet('${emp.id}'),200)">직원 정보 수정</button>
+  `;
+  document.getElementById('detailOverlay').classList.add('open');
+}
+
+// ═══ 페이지 / 필터 ═══
+function switchPage(page,btn) {
+  currentPage=page;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`page-${page}`).classList.add('active');
+  btn.classList.add('active');
+  document.getElementById('fabBtn').style.display=page==='records'?'flex':'none';
+}
+function setFilter(id){filterEmpId=id;renderRecords();}
+function chMonth(d){viewMonth+=d;if(viewMonth<0){viewMonth=11;viewYear--;}if(viewMonth>11){viewMonth=0;viewYear++;}render();}
+
+// ═══ localStorage 자동저장 ═══
+const LS_KEY = 'gig_bossapp_v1';
+
+function saveToLocal() {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(db));
+  } catch(e) {
+    console.warn('로컬 저장 실패:', e);
+  }
+}
+
+function loadFromLocal() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return false;
+    const loaded = JSON.parse(raw);
+    if (!loaded.records || !loaded.employees) return false;
+    db = loaded;
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+// render 호출 시 항상 자동저장
+const _origRender = render;
+render = function() {
+  _origRender();
+  saveToLocal();
+};
+
+// ═══ 파일 (백업/복원용) ═══
+function toggleFilePanel(){const p=document.getElementById('filePanel');p.style.display=p.style.display==='none'||!p.style.display?'block':'none';}
+function saveFile(){
+  const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`근무기록_${viewYear}년_백업.json`;a.click();
+  showToast('백업 파일을 저장했어요 💾');
+}
+function loadFile(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const loaded=JSON.parse(ev.target.result);
+      if(!loaded.records||!loaded.employees)throw new Error();
+      db=loaded;
+      saveToLocal();
+      render();
+      showToast(`불러오기 완료! 직원 ${db.employees.length}명, 기록 ${db.records.length}건 ✓`);
+    }
+    catch{showToast('올바른 근무기록 파일이 아니에요');}
+  };
+  reader.readAsText(file);e.target.value='';
+}
+
+// ═══ 오버레이 ═══
+function closeOverlay(id){document.getElementById(id).classList.remove('open');}
+function closeIfOut(e,id){if(e.target===e.currentTarget)closeOverlay(id);}
+
+// ═══ 토스트 ═══
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+// ═══ 초기화 ═══
+renderColorPicker();
+const restored = loadFromLocal();
+render();
+if (restored) showToast(`💾 데이터 자동 복원 완료 (직원 ${db.employees.length}명)`);
+</script>
+</body>
+</html>
