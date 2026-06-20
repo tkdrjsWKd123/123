@@ -67,7 +67,7 @@ header{background:var(--navy);padding:0 20px;position:sticky;top:0;z-index:200;}
 .cal-head-day.sun{color:#F87171;}
 .cal-head-day.sat{color:#93C5FD;}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);border-left:1px solid var(--border);border-top:1px solid var(--border);}
-.cal-cell{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:5px 4px;min-height:72px;vertical-align:top;cursor:pointer;transition:background .1s;position:relative;}
+.cal-cell{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:5px 4px;height:90px;vertical-align:top;cursor:pointer;transition:background .1s;position:relative;overflow:hidden;}
 .cal-cell:hover{background:#f1fdf8;}
 .cal-cell.empty{background:var(--bg);cursor:default;}
 .cal-cell.empty:hover{background:var(--bg);}
@@ -96,11 +96,16 @@ header{background:var(--navy);padding:0 20px;position:sticky;top:0;z-index:200;}
 .badge.amber{background:var(--amber-light);color:var(--amber);}
 .badge.gray{background:var(--bg);color:var(--slate);}
 .badge.blue{background:#EFF6FF;color:#3B82F6;}
-.emp-sum-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.emp-sum-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
 .emp-stat{text-align:center;}
 .emp-stat-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;color:var(--navy);}
 .emp-stat-val.green{color:var(--g);}
 .emp-stat-label{font-size:9px;font-weight:600;color:var(--slate-light);margin-top:1px;}
+.emp-pay-bar{background:var(--g-light);border-radius:10px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;border:1px solid rgba(29,192,120,0.2);}
+.emp-pay-bar-left{display:flex;flex-direction:column;}
+.emp-pay-bar-label{font-size:10px;font-weight:700;color:var(--g-dark);margin-bottom:2px;}
+.emp-pay-bar-sub{font-size:10px;color:var(--g-dark);opacity:0.65;}
+.emp-pay-bar-val{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:900;color:var(--g);letter-spacing:-0.5px;}
 
 /* 직원 목록 */
 .emp-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
@@ -567,9 +572,15 @@ function renderDashboard() {
       </div>
       <div class="emp-sum-stats">
         <div class="emp-stat"><div class="emp-stat-val green">${s.days}</div><div class="emp-stat-label">근무일</div></div>
-        <div class="emp-stat"><div class="emp-stat-val">${s.hrs.toFixed(1)}</div><div class="emp-stat-label">총시간</div></div>
+        <div class="emp-stat"><div class="emp-stat-val">${s.hrs.toFixed(1)}h</div><div class="emp-stat-label">총 시간</div></div>
         <div class="emp-stat"><div class="emp-stat-val">${wageVal}</div><div class="emp-stat-label">${wageLabel}</div></div>
-        <div class="emp-stat"><div class="emp-stat-val" style="color:${e.color}">${fmtMoney(s.total)}</div><div class="emp-stat-label">예상급여</div></div>
+      </div>
+      <div class="emp-pay-bar">
+        <div class="emp-pay-bar-left">
+          <div class="emp-pay-bar-label">💰 ${viewYear}년 ${viewMonth+1}월 총 급여</div>
+          <div class="emp-pay-bar-sub">기본급 ${fmtMoney(s.base)}${s.juhyu>0?' + 주휴 '+fmtMoney(s.juhyu):''}</div>
+        </div>
+        <div class="emp-pay-bar-val">${fmtMoney(s.total)}</div>
       </div>
     </div>`;
   }).join('');
@@ -674,7 +685,7 @@ function openEmpSheet(id) {
   document.getElementById('empBtnDel').style.display=emp?'block':'none';
   document.getElementById('eName').value=emp?.name||'';
   document.getElementById('eRole').value=emp?.role||'';
-  document.getElementById('eHourly').value=emp?.hourly||10320;
+  document.getElementById('eHourly').value=emp?.hourly||10030;
   document.getElementById('eDaily').value=emp?.dailyWage||80000;
   document.getElementById('eJuhyu').checked=emp?.juhyu!==undefined?emp.juhyu:true;
   setWageType(emp?.wageType||'hourly');
@@ -758,8 +769,8 @@ function openRecSheet(id) {
     if(filterEmpId!=='all') sel.value=filterEmpId;
     // 달력에서 날짜 클릭한 경우 해당 날짜로
     document.getElementById('rDate').value=clickedDate||new Date().toISOString().slice(0,10);
-    document.getElementById('rIn').value='09:00';
-    document.getElementById('rOut').value='18:00';
+    document.getElementById('rIn').value='17:00';
+    document.getElementById('rOut').value='04:00';
     document.getElementById('rBreak').value='0';
     document.getElementById('rMemo').value='';
   }
@@ -920,27 +931,42 @@ function openDetail(empId) {
         <div style="font-size:12px;color:var(--slate)">${emp.role||'직원'} · ${emp.wageType==='daily'?'일급제':'시급제'} · ${emp.juhyu&&emp.wageType!=='daily'?'주휴수당 포함':'주휴수당 미포함'}</div>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
-      <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center">
-        <div style="font-size:10px;font-weight:700;color:var(--slate);margin-bottom:4px">${emp.wageType==='daily'?'일급':'시급'}</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800">${fmtMoney(emp.wageType==='daily'?(emp.dailyWage||0):(emp.hourly||0))}</div>
-      </div>
-      <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center">
-        <div style="font-size:10px;font-weight:700;color:var(--slate);margin-bottom:4px">일 평균 기본급</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;color:var(--g)">${fmtMoney(dailyAvg)}</div>
+
+    <!-- 월 총 급여 강조 -->
+    <div style="background:var(--navy);border-radius:16px;padding:20px;margin-bottom:16px;position:relative;overflow:hidden;">
+      <div style="position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,rgba(29,192,120,0.15) 0%,transparent 60%);pointer-events:none;"></div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:600;margin-bottom:4px;letter-spacing:0.3px;">${viewYear}년 ${viewMonth+1}월 1일 ~ ${viewMonth+1}월 말일</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:14px;">총 급여 (기본급 + 주휴수당)</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:36px;font-weight:900;color:var(--g);letter-spacing:-1px;line-height:1;margin-bottom:16px;">${fmtMoney(s.total)}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+        <div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:10px 12px;">
+          <div style="font-size:10px;color:rgba(255,255,255,0.45);font-weight:600;margin-bottom:4px;">근무일수</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;color:#fff;">${s.days}일</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:10px 12px;">
+          <div style="font-size:10px;color:rgba(255,255,255,0.45);font-weight:600;margin-bottom:4px;">총 근무시간</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;color:#fff;">${s.hrs.toFixed(1)}h</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:10px 12px;">
+          <div style="font-size:10px;color:rgba(255,255,255,0.45);font-weight:600;margin-bottom:4px;">${emp.wageType==='daily'?'일급':'시급'}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;color:#fff;">${fmtMoney(emp.wageType==='daily'?(emp.dailyWage||0):(emp.hourly||0))}</div>
+        </div>
       </div>
     </div>
+
+    <!-- 급여 상세 내역 -->
     <div class="pay-breakdown">
-      <div class="card-title">💰 ${viewYear}년 ${viewMonth+1}월 급여 내역</div>
-      <div class="pay-row-item"><span class="pay-row-label">근무일수</span><span class="pay-row-val">${s.days}일</span></div>
-      <div class="pay-row-item"><span class="pay-row-label">총 근무시간</span><span class="pay-row-val">${s.hrs.toFixed(2)}h</span></div>
-      <div class="pay-row-item"><span class="pay-row-label">기본급</span><span class="pay-row-val green">${fmtMoney(s.base)}</span></div>
+      <div class="card-title">📋 급여 상세 내역</div>
+      <div class="pay-row-item"><span class="pay-row-label">기본급 (${emp.wageType==='daily'?s.days+'일 × '+fmtMoney(emp.dailyWage||0):s.hrs.toFixed(2)+'h × '+fmtMoney(emp.hourly||0)})</span><span class="pay-row-val green">${fmtMoney(s.base)}</span></div>
       ${emp.wageType!=='daily'&&emp.juhyu?`
-        <div style="margin:8px 0 4px;font-size:10px;color:rgba(255,255,255,0.4);font-weight:600">주휴수당 (주별)</div>
+        <div style="margin:8px 0 4px;font-size:10px;color:rgba(255,255,255,0.4);font-weight:600;letter-spacing:0.3px;">주휴수당 (주별)</div>
         ${weekRows||'<div class="pay-row-item"><span class="pay-row-label">근무기록 없음</span><span class="pay-row-val">-</span></div>'}
         <div class="pay-row-item"><span class="pay-row-label">주휴수당 합계</span><span class="pay-row-val purple">${fmtMoney(s.juhyu)}</span></div>
       `:`<div class="pay-row-item"><span class="pay-row-label">주휴수당</span><span class="pay-row-val" style="color:rgba(255,255,255,0.3)">${emp.wageType==='daily'?'일급에 포함':'미적용'}</span></div>`}
-      <div class="pay-total-row"><span class="pay-total-label">예상 총 급여</span><span class="pay-total-val">${fmtMoney(s.total)}</span></div>
+      <div class="pay-total-row">
+        <span class="pay-total-label">💰 ${viewMonth+1}월 총 급여</span>
+        <span class="pay-total-val">${fmtMoney(s.total)}</span>
+      </div>
     </div>
     <button class="btn-save" onclick="closeOverlay('detailOverlay');setTimeout(()=>openEmpSheet('${emp.id}'),200)">직원 정보 수정</button>
   `;
