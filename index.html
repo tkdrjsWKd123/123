@@ -67,11 +67,12 @@ header{background:var(--navy);padding:0 20px;position:sticky;top:0;z-index:200;}
 .cal-head-day.sun{color:#F87171;}
 .cal-head-day.sat{color:#93C5FD;}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);border-left:1px solid var(--border);border-top:1px solid var(--border);}
-.cal-cell{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:5px 4px;height:90px;vertical-align:top;cursor:pointer;transition:background .1s;position:relative;overflow:hidden;}
+.cal-cell{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:5px 4px;min-height:90px;vertical-align:top;cursor:pointer;transition:background .1s;position:relative;}
 .cal-cell:hover{background:#f1fdf8;}
-.cal-cell.empty{background:var(--bg);cursor:default;}
+.cal-cell.empty{background:var(--bg);cursor:default;min-height:90px;}
 .cal-cell.empty:hover{background:var(--bg);}
 .cal-cell.today-cell{background:#f0fdf9;}
+.cal-cell.selected-cell{background:#e0faf1;outline:2px solid var(--g);outline-offset:-2px;}
 .cal-day-num{font-size:11px;font-weight:700;color:var(--slate);margin-bottom:3px;display:block;}
 .cal-day-num.sun{color:var(--red);}
 .cal-day-num.sat{color:var(--blue, #3B82F6);}
@@ -284,6 +285,16 @@ header{background:var(--navy);padding:0 20px;position:sticky;top:0;z-index:200;}
     <!-- 직원 범례 -->
     <div class="cal-legend" id="calLegend"></div>
 
+    <!-- 다중선택 모드 배너 -->
+    <div id="multiSelectBanner" style="display:none;background:var(--navy);border-radius:12px;padding:12px 16px;margin-bottom:10px;display:none;align-items:center;justify-content:space-between;">
+      <div style="color:#fff;font-size:13px;font-weight:700;"><span id="multiSelectCount">0</span>일 선택됨</div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="cancelMultiSelect()" style="padding:6px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">취소</button>
+        <button onclick="openMultiRecSheet()" style="padding:6px 12px;border-radius:8px;border:none;background:var(--g);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">일괄 입력 →</button>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--slate);margin-bottom:8px;text-align:right;">날짜 길게 누르면 여러 날 선택 가능</div>
+
     <!-- 달력 -->
     <div class="cal-wrap">
       <div class="cal-head">
@@ -432,6 +443,36 @@ header{background:var(--navy);padding:0 20px;position:sticky;top:0;z-index:200;}
   <div class="sheet"><div class="sheet-handle"></div><div id="detailContent"></div></div>
 </div>
 
+<!-- ══ 일괄 근무입력 시트 ══ -->
+<div class="overlay" id="multiRecOverlay" onclick="closeIfOut(event,'multiRecOverlay')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">📅 여러 날 근무 일괄 입력</div>
+    <div id="multiDateTags" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;"></div>
+    <div class="field"><label>직원 선택</label><select class="fselect" id="mrEmp" onchange="updateMultiPreview()"></select></div>
+    <div class="field">
+      <label>출근 → 퇴근</label>
+      <div class="time-row">
+        <input class="finput mono" id="mrIn" type="time" value="17:00" oninput="updateMultiPreview()">
+        <div class="time-sep">→</div>
+        <input class="finput mono" id="mrOut" type="time" value="04:00" oninput="updateMultiPreview()">
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="field"><label>휴게시간 (분)</label><input class="finput" id="mrBreak" type="number" value="0" min="0" oninput="updateMultiPreview()"></div>
+      <div class="field"><label>메모</label><input class="finput" id="mrMemo" type="text" placeholder="야근, 재택..."></div>
+    </div>
+    <div class="pay-breakdown" id="multiPreview" style="display:none">
+      <div class="card-title">💰 일괄 입력 예상 급여</div>
+      <div class="pay-row-item"><span class="pay-row-label">1일 근무시간</span><span class="pay-row-val" id="mpDur">-</span></div>
+      <div class="pay-row-item"><span class="pay-row-label">1일 급여</span><span class="pay-row-val green" id="mpDay">-</span></div>
+      <div class="pay-row-item"><span class="pay-row-label">선택 일수</span><span class="pay-row-val" id="mpDays">-</span></div>
+      <div class="pay-total-row"><span class="pay-total-label">합계 예상 급여</span><span class="pay-total-val" id="mpTotal">-</span></div>
+    </div>
+    <button class="btn-save" onclick="saveMultiRec()">일괄 저장하기</button>
+  </div>
+</div>
+
 <!-- ══ 날짜 클릭 시트 ══ -->
 <div class="overlay" id="dayOverlay" onclick="closeIfOut(event,'dayOverlay')">
   <div class="sheet">
@@ -456,6 +497,8 @@ let editRecId = null;
 let selectedColor = '#1DC078';
 let selectedWageType = 'hourly'; // 'hourly' | 'daily'
 let clickedDate = null;
+let selectedDates = []; // 다중선택 날짜 배열
+let multiSelectMode = false;
 
 const COLORS = ['#1DC078','#3B82F6','#8B5CF6','#F59E0B','#EF4444','#EC4899','#14B8A6','#F97316','#6366F1','#84CC16'];
 const DAYS = ['일','월','화','수','목','금','토'];
@@ -593,7 +636,6 @@ function renderCalendar() {
   const lastDate = new Date(viewYear, viewMonth+1, 0).getDate();
   const todayStr = today.toISOString().slice(0,10);
 
-  // 날짜별 기록 맵
   const dayMap = {};
   db.records.forEach(r=>{
     if(!r.date.startsWith(`${viewYear}-${pad(viewMonth+1)}`)) return;
@@ -602,13 +644,13 @@ function renderCalendar() {
   });
 
   let html='';
-  // 빈 칸
   for(let i=0;i<firstDay;i++) html+=`<div class="cal-cell empty"></div>`;
 
   for(let d=1;d<=lastDate;d++){
     const dateStr=`${viewYear}-${pad(viewMonth+1)}-${pad(d)}`;
     const dow=new Date(viewYear,viewMonth,d).getDay();
     const isToday=dateStr===todayStr;
+    const isSelected=selectedDates.includes(dateStr);
     const recs=dayMap[dateStr]||[];
     const numClass=dow===0?'sun':dow===6?'sat':'';
 
@@ -616,9 +658,11 @@ function renderCalendar() {
       ?`<span class="cal-day-num today-num">${d}</span>`
       :`<span class="cal-day-num ${numClass}">${d}</span>`;
 
+    // 선택 체크 표시
+    const checkMark = isSelected ? `<span style="position:absolute;top:3px;right:3px;width:14px;height:14px;border-radius:50%;background:var(--g);color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:800;">✓</span>` : '';
+
     let chipsHtml='';
-    const maxShow=3;
-    recs.slice(0,maxShow).forEach(r=>{
+    recs.forEach(r=>{
       const emp=db.employees.find(e=>e.id===r.empId);
       const color=emp?.color||'#94A3B8';
       const name=emp?.name||'?';
@@ -628,19 +672,141 @@ function renderCalendar() {
       chipsHtml+=`<span class="cal-chip" style="background:${color}">${name}</span>
         <span class="cal-chip-time" style="color:${color}">${r.in}~${r.out} (${durStr})</span>`;
     });
-    if(recs.length>maxShow) chipsHtml+=`<span class="cal-more">+${recs.length-maxShow}건</span>`;
 
-    html+=`<div class="cal-cell ${isToday?'today-cell':''}" onclick="openDaySheet('${dateStr}')">
-      ${dayNumHtml}${chipsHtml}
+    const cellClass=`cal-cell${isToday?' today-cell':''}${isSelected?' selected-cell':''}`;
+    html+=`<div class="${cellClass}" 
+      onclick="handleCalClick('${dateStr}')" 
+      ontouchstart="handleCalTouchStart('${dateStr}')"
+      ontouchend="handleCalTouchEnd()"
+      onmousedown="handleCalMouseDown('${dateStr}')"
+      onmouseup="handleCalMouseUp()">
+      ${checkMark}${dayNumHtml}${chipsHtml}
     </div>`;
   }
 
-  // 뒷 빈칸
   const total=firstDay+lastDate;
   const remain=total%7?7-(total%7):0;
   for(let i=0;i<remain;i++) html+=`<div class="cal-cell empty"></div>`;
 
   document.getElementById('calGrid').innerHTML=html;
+
+  // 다중선택 배너
+  const banner=document.getElementById('multiSelectBanner');
+  if(multiSelectMode && selectedDates.length>0){
+    banner.style.display='flex';
+    document.getElementById('multiSelectCount').textContent=selectedDates.length;
+  } else {
+    banner.style.display='none';
+  }
+}
+
+// ─ 달력 클릭/롱프레스 처리 ─
+let longPressTimer=null;
+let longPressTriggered=false;
+
+function handleCalTouchStart(dateStr){
+  longPressTriggered=false;
+  longPressTimer=setTimeout(()=>{
+    longPressTriggered=true;
+    enterMultiSelect(dateStr);
+  },500);
+}
+function handleCalTouchEnd(){
+  clearTimeout(longPressTimer);
+}
+function handleCalMouseDown(dateStr){
+  longPressTriggered=false;
+  longPressTimer=setTimeout(()=>{
+    longPressTriggered=true;
+    enterMultiSelect(dateStr);
+  },500);
+}
+function handleCalMouseUp(){
+  clearTimeout(longPressTimer);
+}
+function handleCalClick(dateStr){
+  if(longPressTriggered){ longPressTriggered=false; return; }
+  if(multiSelectMode){
+    toggleDateSelect(dateStr);
+  } else {
+    openDaySheet(dateStr);
+  }
+}
+
+function enterMultiSelect(dateStr){
+  multiSelectMode=true;
+  selectedDates=selectedDates.includes(dateStr)?selectedDates:[dateStr];
+  renderCalendar();
+  showToast('날짜를 탭해서 여러 날 선택하세요');
+}
+function toggleDateSelect(dateStr){
+  if(selectedDates.includes(dateStr)){
+    selectedDates=selectedDates.filter(d=>d!==dateStr);
+    if(selectedDates.length===0) multiSelectMode=false;
+  } else {
+    selectedDates.push(dateStr);
+  }
+  renderCalendar();
+}
+function cancelMultiSelect(){
+  multiSelectMode=false;
+  selectedDates=[];
+  renderCalendar();
+}
+
+// ─ 일괄 입력 시트 ─
+function openMultiRecSheet(){
+  if(!db.employees.length){showToast('먼저 직원을 추가해주세요');return;}
+  const sel=document.getElementById('mrEmp');
+  sel.innerHTML=db.employees.map(e=>{
+    const wLabel=e.wageType==='daily'?`일급 ${fmtMoney(e.dailyWage)}`:`시급 ${fmtMoney(e.hourly)}`;
+    return `<option value="${e.id}">${e.name} (${wLabel})</option>`;
+  }).join('');
+  // 날짜 태그 표시
+  const sorted=[...selectedDates].sort();
+  document.getElementById('multiDateTags').innerHTML=sorted.map(d=>{
+    const dt=new Date(d);
+    return `<span style="background:var(--g-light);color:var(--g-dark);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;">${dt.getMonth()+1}/${dt.getDate()}(${DAYS[dt.getDay()]})</span>`;
+  }).join('');
+  updateMultiPreview();
+  document.getElementById('multiRecOverlay').classList.add('open');
+}
+
+function updateMultiPreview(){
+  const empId=document.getElementById('mrEmp').value;
+  const inT=document.getElementById('mrIn').value;
+  const outT=document.getElementById('mrOut').value;
+  const brk=parseInt(document.getElementById('mrBreak').value)||0;
+  const prev=document.getElementById('multiPreview');
+  if(!empId||!inT||!outT){prev.style.display='none';return;}
+  const emp=db.employees.find(e=>e.id===empId);
+  if(!emp){prev.style.display='none';return;}
+  const tempDate=selectedDates[0]||new Date().toISOString().slice(0,10);
+  const mins=calcMins(tempDate,inT,outT,brk);
+  const h=Math.floor(mins/60),m=Math.round(mins%60);
+  let dayPay=emp.wageType==='daily'?(emp.dailyWage||0):(mins/60)*(emp.hourly||0);
+  prev.style.display='block';
+  document.getElementById('mpDur').textContent=`${h}h ${m}m`;
+  document.getElementById('mpDay').textContent=fmtMoney(dayPay);
+  document.getElementById('mpDays').textContent=`${selectedDates.length}일`;
+  document.getElementById('mpTotal').textContent=fmtMoney(dayPay*selectedDates.length);
+}
+
+function saveMultiRec(){
+  const empId=document.getElementById('mrEmp').value;
+  const inT=document.getElementById('mrIn').value;
+  const outT=document.getElementById('mrOut').value;
+  const brk=parseInt(document.getElementById('mrBreak').value)||0;
+  const memo=document.getElementById('mrMemo').value.trim();
+  if(!empId||!inT||!outT){showToast('직원과 시간을 입력해주세요');return;}
+  selectedDates.forEach(date=>{
+    db.records.push({id:uid(),empId,date,in:inT,out:outT,break:brk,memo});
+  });
+  const cnt=selectedDates.length;
+  cancelMultiSelect();
+  closeOverlay('multiRecOverlay');
+  render();
+  showToast(`${cnt}일치 근무기록을 추가했어요 ✓`);
 }
 
 // 날짜 클릭 → 당일 기록 시트
