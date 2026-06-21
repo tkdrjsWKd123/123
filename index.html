@@ -41,6 +41,10 @@ header{background:var(--navy);padding:0 20px;position:sticky;top:0;z-index:200;}
 /* LAYOUT */
 .content{max-width:600px;margin:0 auto;padding:20px 16px 80px;}
 .page{display:none;}.page.active{display:block;}
+/* 달력 페이지는 좌우 패딩 없이 full width */
+#page-dashboard .cal-wrap{margin-left:-16px;margin-right:-16px;border-radius:0;width:calc(100% + 32px);}
+#page-dashboard .cal-head{width:100%;}
+#page-dashboard .cal-grid{width:100%;}
 
 /* MONTH NAV */
 .month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
@@ -61,13 +65,13 @@ header{background:var(--navy);padding:0 20px;position:sticky;top:0;z-index:200;}
 .cost-item-val.green{color:var(--g);}
 
 /* ══ 달력 ══ */
-.cal-wrap{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:16px;width:100%;table-layout:fixed;}
-.cal-head{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));background:var(--navy);width:100%;}
+.cal-wrap{background:var(--white);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:16px;width:100%;max-width:100%;}
+.cal-head{display:grid;grid-template-columns:repeat(7,1fr);background:var(--navy);width:100%;}
 .cal-head-day{text-align:center;font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);padding:8px 0;}
 .cal-head-day.sun{color:#F87171;}
 .cal-head-day.sat{color:#93C5FD;}
-.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-left:1px solid var(--border);border-top:1px solid var(--border);width:100%;}
-.cal-cell{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:4px 2px;min-height:90px;cursor:pointer;transition:background .1s;position:relative;overflow:hidden;min-width:0;word-break:break-word;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);border-left:1px solid var(--border);border-top:1px solid var(--border);width:100%;}
+.cal-cell{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:4px 2px;min-height:90px;cursor:pointer;transition:background .1s;position:relative;overflow:hidden;min-width:0;word-break:break-all;}
 .cal-cell:hover{background:#f1fdf8;}
 .cal-cell.empty{background:var(--bg);cursor:default;min-height:90px;}
 .cal-cell.empty:hover{background:var(--bg);}
@@ -78,7 +82,7 @@ header{background:var(--navy);padding:0 20px;position:sticky;top:0;z-index:200;}
 .cal-day-num.sat{color:#3B82F6;}
 .cal-day-num.today-num{background:var(--g);color:#fff;width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;}
 .cal-chip{display:block;border-radius:3px;padding:1px 3px;margin-bottom:1px;font-size:8px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.5;}
-.cal-chip-time{display:block;font-size:7px;font-weight:600;opacity:0.9;margin-bottom:1px;padding:0 3px;color:var(--slate);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cal-chip-time{display:block;font-size:7px;font-weight:600;margin-bottom:1px;padding:0 2px;color:var(--slate);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .cal-day-pay{display:block;font-size:7px;font-weight:800;color:var(--g-dark);background:var(--g-light);border-radius:3px;padding:1px 3px;margin-top:2px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
 /* 직원 카드 */
