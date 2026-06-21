@@ -61,25 +61,25 @@ header{background:var(--navy);padding:0 20px;position:sticky;top:0;z-index:200;}
 .cost-item-val.green{color:var(--g);}
 
 /* ══ 달력 ══ */
-.cal-wrap{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:16px;}
-.cal-head{display:grid;grid-template-columns:repeat(7,1fr);background:var(--navy);}
+.cal-wrap{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:16px;width:100%;table-layout:fixed;}
+.cal-head{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));background:var(--navy);width:100%;}
 .cal-head-day{text-align:center;font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);padding:8px 0;}
 .cal-head-day.sun{color:#F87171;}
 .cal-head-day.sat{color:#93C5FD;}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);border-left:1px solid var(--border);border-top:1px solid var(--border);}
-.cal-cell{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:5px 4px;min-height:90px;vertical-align:top;cursor:pointer;transition:background .1s;position:relative;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-left:1px solid var(--border);border-top:1px solid var(--border);width:100%;}
+.cal-cell{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:4px 2px;min-height:90px;cursor:pointer;transition:background .1s;position:relative;overflow:hidden;min-width:0;word-break:break-word;}
 .cal-cell:hover{background:#f1fdf8;}
 .cal-cell.empty{background:var(--bg);cursor:default;min-height:90px;}
 .cal-cell.empty:hover{background:var(--bg);}
 .cal-cell.today-cell{background:#f0fdf9;}
 .cal-cell.selected-cell{background:#e0faf1;outline:2px solid var(--g);outline-offset:-2px;}
-.cal-day-num{font-size:11px;font-weight:700;color:var(--slate);margin-bottom:3px;display:block;}
+.cal-day-num{font-size:10px;font-weight:700;color:var(--slate);margin-bottom:2px;display:block;}
 .cal-day-num.sun{color:var(--red);}
-.cal-day-num.sat{color:var(--blue, #3B82F6);}
-.cal-day-num.today-num{background:var(--g);color:#fff;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;}
-.cal-chip{display:block;border-radius:3px;padding:1px 4px;margin-bottom:2px;font-size:9px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5;}
-.cal-chip-time{display:block;font-size:8px;font-weight:600;opacity:0.85;margin-bottom:1px;padding:0 4px;}
-.cal-more{font-size:9px;color:var(--slate);font-weight:600;padding:0 3px;}
+.cal-day-num.sat{color:#3B82F6;}
+.cal-day-num.today-num{background:var(--g);color:#fff;width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;}
+.cal-chip{display:block;border-radius:3px;padding:1px 3px;margin-bottom:1px;font-size:8px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.5;}
+.cal-chip-time{display:block;font-size:7px;font-weight:600;opacity:0.9;margin-bottom:1px;padding:0 3px;color:var(--slate);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cal-day-pay{display:block;font-size:7px;font-weight:800;color:var(--g-dark);background:var(--g-light);border-radius:3px;padding:1px 3px;margin-top:2px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
 /* 직원 카드 */
 .emp-cards{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
@@ -662,6 +662,7 @@ function renderCalendar() {
     const checkMark = isSelected ? `<span style="position:absolute;top:3px;right:3px;width:14px;height:14px;border-radius:50%;background:var(--g);color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:800;">✓</span>` : '';
 
     let chipsHtml='';
+    let dayTotalPay=0;
     recs.forEach(r=>{
       const emp=db.employees.find(e=>e.id===r.empId);
       const color=emp?.color||'#94A3B8';
@@ -669,9 +670,16 @@ function renderCalendar() {
       const mins=calcMins(r.date,r.in,r.out,r.break||0);
       const h=Math.floor(mins/60),m=Math.round(mins%60);
       const durStr=h>0?`${h}h${m>0?m+'m':''}`:`${m}m`;
+      const pay=calcRecPay(r);
+      dayTotalPay+=pay;
       chipsHtml+=`<span class="cal-chip" style="background:${color}">${name}</span>
-        <span class="cal-chip-time" style="color:${color}">${r.in}~${r.out} (${durStr})</span>`;
+        <span class="cal-chip-time">${r.in}~${r.out}(${durStr})</span>`;
     });
+    // 일별 총 급여
+    if(recs.length>0){
+      const payStr=dayTotalPay>=10000?`${(dayTotalPay/10000).toFixed(1)}만`:`${Math.round(dayTotalPay/1000)}천`;
+      chipsHtml+=`<span class="cal-day-pay">💰${payStr}</span>`;
+    }
 
     const cellClass=`cal-cell${isToday?' today-cell':''}${isSelected?' selected-cell':''}`;
     html+=`<div class="${cellClass}" 
