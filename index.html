@@ -20,6 +20,7 @@
   --r:16px;--r-sm:10px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
+html,body{overflow-x:hidden;max-width:100vw;}
 body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--navy);min-height:100vh;-webkit-font-smoothing:antialiased;}
 
 /* HEADER */
@@ -39,12 +40,10 @@ header{background:var(--navy);padding:0 20px;position:sticky;top:0;z-index:200;}
 .ntab.active{color:var(--g);border-bottom-color:var(--g);}
 
 /* LAYOUT */
-.content{max-width:600px;margin:0 auto;padding:20px 16px 80px;}
+.content{max-width:600px;margin:0 auto;padding:16px 8px 80px;}
 .page{display:none;}.page.active{display:block;}
-/* 달력 페이지는 좌우 패딩 없이 full width */
-#page-dashboard .cal-wrap{margin-left:-16px;margin-right:-16px;border-radius:0;width:calc(100% + 32px);}
-#page-dashboard .cal-head{width:100%;}
-#page-dashboard .cal-grid{width:100%;}
+/* 달력은 content 안에서 좌우 여백 없이 꽉 차게 */
+#page-dashboard .cal-wrap{margin-left:-8px;margin-right:-8px;border-radius:0;}
 
 /* MONTH NAV */
 .month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
@@ -65,15 +64,17 @@ header{background:var(--navy);padding:0 20px;position:sticky;top:0;z-index:200;}
 .cost-item-val.green{color:var(--g);}
 
 /* ══ 달력 ══ */
-.cal-wrap{background:var(--white);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:16px;width:100%;max-width:100%;}
-.cal-head{display:grid;grid-template-columns:repeat(7,1fr);background:var(--navy);width:100%;}
-.cal-head-day{text-align:center;font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);padding:8px 0;}
+.cal-wrap{background:var(--white);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:16px;width:100%;}
+.cal-head{display:table;table-layout:fixed;width:100%;background:var(--navy);}
+.cal-head-row{display:table-row;}
+.cal-head-day{display:table-cell;text-align:center;font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);padding:8px 0;width:14.2857%;}
 .cal-head-day.sun{color:#F87171;}
 .cal-head-day.sat{color:#93C5FD;}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);border-left:1px solid var(--border);border-top:1px solid var(--border);width:100%;}
-.cal-cell{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:4px 2px;min-height:90px;cursor:pointer;transition:background .1s;position:relative;overflow:hidden;min-width:0;word-break:break-all;}
+.cal-grid{display:table;table-layout:fixed;width:100%;border-collapse:collapse;}
+.cal-row{display:table-row;}
+.cal-cell{display:table-cell;border:1px solid var(--border);padding:4px 2px;min-height:90px;height:90px;cursor:pointer;transition:background .1s;position:relative;overflow:hidden;width:14.2857%;vertical-align:top;}
 .cal-cell:hover{background:#f1fdf8;}
-.cal-cell.empty{background:var(--bg);cursor:default;min-height:90px;}
+.cal-cell.empty{background:var(--bg);cursor:default;}
 .cal-cell.empty:hover{background:var(--bg);}
 .cal-cell.today-cell{background:#f0fdf9;}
 .cal-cell.selected-cell{background:#e0faf1;outline:2px solid var(--g);outline-offset:-2px;}
@@ -302,13 +303,15 @@ header{background:var(--navy);padding:0 20px;position:sticky;top:0;z-index:200;}
     <!-- 달력 -->
     <div class="cal-wrap">
       <div class="cal-head">
-        <div class="cal-head-day sun">일</div>
-        <div class="cal-head-day">월</div>
-        <div class="cal-head-day">화</div>
-        <div class="cal-head-day">수</div>
-        <div class="cal-head-day">목</div>
-        <div class="cal-head-day">금</div>
-        <div class="cal-head-day sat">토</div>
+        <div class="cal-head-row">
+          <div class="cal-head-day sun">일</div>
+          <div class="cal-head-day">월</div>
+          <div class="cal-head-day">화</div>
+          <div class="cal-head-day">수</div>
+          <div class="cal-head-day">목</div>
+          <div class="cal-head-day">금</div>
+          <div class="cal-head-day sat">토</div>
+        </div>
       </div>
       <div class="cal-grid" id="calGrid"></div>
     </div>
@@ -647,8 +650,9 @@ function renderCalendar() {
     dayMap[r.date].push(r);
   });
 
-  let html='';
-  for(let i=0;i<firstDay;i++) html+=`<div class="cal-cell empty"></div>`;
+  // 전체 셀 배열 생성
+  const allCells = [];
+  for(let i=0;i<firstDay;i++) allCells.push({empty:true});
 
   for(let d=1;d<=lastDate;d++){
     const dateStr=`${viewYear}-${pad(viewMonth+1)}-${pad(d)}`;
@@ -657,14 +661,10 @@ function renderCalendar() {
     const isSelected=selectedDates.includes(dateStr);
     const recs=dayMap[dateStr]||[];
     const numClass=dow===0?'sun':dow===6?'sat':'';
-
-    let dayNumHtml=isToday
+    const dayNumHtml=isToday
       ?`<span class="cal-day-num today-num">${d}</span>`
       :`<span class="cal-day-num ${numClass}">${d}</span>`;
-
-    // 선택 체크 표시
-    const checkMark = isSelected ? `<span style="position:absolute;top:3px;right:3px;width:14px;height:14px;border-radius:50%;background:var(--g);color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:800;">✓</span>` : '';
-
+    const checkMark=isSelected?`<span style="position:absolute;top:3px;right:3px;width:14px;height:14px;border-radius:50%;background:var(--g);color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:800;">✓</span>`:'';
     let chipsHtml='';
     let dayTotalPay=0;
     recs.forEach(r=>{
@@ -676,29 +676,34 @@ function renderCalendar() {
       const durStr=h>0?`${h}h${m>0?m+'m':''}`:`${m}m`;
       const pay=calcRecPay(r);
       dayTotalPay+=pay;
-      chipsHtml+=`<span class="cal-chip" style="background:${color}">${name}</span>
-        <span class="cal-chip-time">${r.in}~${r.out}(${durStr})</span>`;
+      chipsHtml+=`<span class="cal-chip" style="background:${color}">${name}</span><span class="cal-chip-time">${r.in}~${r.out}(${durStr})</span>`;
     });
-    // 일별 총 급여
     if(recs.length>0){
       const payStr=dayTotalPay>=10000?`${(dayTotalPay/10000).toFixed(1)}만`:`${Math.round(dayTotalPay/1000)}천`;
       chipsHtml+=`<span class="cal-day-pay">💰${payStr}</span>`;
     }
-
     const cellClass=`cal-cell${isToday?' today-cell':''}${isSelected?' selected-cell':''}`;
-    html+=`<div class="${cellClass}" 
-      onclick="handleCalClick('${dateStr}')" 
-      ontouchstart="handleCalTouchStart('${dateStr}')"
-      ontouchend="handleCalTouchEnd()"
-      onmousedown="handleCalMouseDown('${dateStr}')"
-      onmouseup="handleCalMouseUp()">
-      ${checkMark}${dayNumHtml}${chipsHtml}
-    </div>`;
+    allCells.push({empty:false,dateStr,cellClass,checkMark,dayNumHtml,chipsHtml});
   }
 
-  const total=firstDay+lastDate;
-  const remain=total%7?7-(total%7):0;
-  for(let i=0;i<remain;i++) html+=`<div class="cal-cell empty"></div>`;
+  // 뒷 빈칸
+  const remain=allCells.length%7?7-(allCells.length%7):0;
+  for(let i=0;i<remain;i++) allCells.push({empty:true});
+
+  // 7칸씩 table-row로 묶기
+  let html='';
+  for(let i=0;i<allCells.length;i+=7){
+    html+=`<div class="cal-row">`;
+    for(let j=0;j<7;j++){
+      const c=allCells[i+j];
+      if(!c||c.empty){
+        html+=`<div class="cal-cell empty"></div>`;
+      } else {
+        html+=`<div class="${c.cellClass}" onclick="handleCalClick('${c.dateStr}')" ontouchstart="handleCalTouchStart('${c.dateStr}')" ontouchend="handleCalTouchEnd()" onmousedown="handleCalMouseDown('${c.dateStr}')" onmouseup="handleCalMouseUp()">${c.checkMark}${c.dayNumHtml}${c.chipsHtml}</div>`;
+      }
+    }
+    html+=`</div>`;
+  }
 
   document.getElementById('calGrid').innerHTML=html;
 
